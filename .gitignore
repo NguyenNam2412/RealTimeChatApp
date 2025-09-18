@@ -1,0 +1,36 @@
+# Node.js
+**/node_modules
+/.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# TypeScript build
+/dist
+/build
+
+# Env files
+.env*
+!.env.example
+.env.test
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# #db
+# db/
+# *.sqlite
+# *.db
