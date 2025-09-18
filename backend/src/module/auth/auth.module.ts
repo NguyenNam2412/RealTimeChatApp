@@ -18,5 +18,7 @@ import { Admin } from '@entities/admin.entity';
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
+  exports: [JwtModule]
 })
+
 export class AuthModule {}

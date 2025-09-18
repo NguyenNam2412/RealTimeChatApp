@@ -5,7 +5,6 @@ import csurf from 'csurf';
 import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-// import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
@@ -15,15 +14,18 @@ async function bootstrap() {
 
   app.use(helmet());
 
+  app.use(cookieParser());
+
+  app.use(csurf({
+    cookie: true
+  }));
+
+
   app.enableCors({
     origin: ['http://localhost:3000'],
     methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
     credentials: true,
   });
-
-  app.use(csurf());
-
-  app.use(cookieParser());
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 

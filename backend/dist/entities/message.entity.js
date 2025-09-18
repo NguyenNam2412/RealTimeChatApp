@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Message = void 0;
 const typeorm_1 = require("typeorm");
+const user_entity_1 = require("./user.entity");
+const group_entity_1 = require("./group.entity");
 let Message = class Message {
 };
 exports.Message = Message;
@@ -19,25 +21,37 @@ __decorate([
     __metadata("design:type", String)
 ], Message.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Message.prototype, "senderId", void 0);
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, (user) => user.id, { eager: true }),
+    __metadata("design:type", user_entity_1.User)
+], Message.prototype, "sender", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Message.prototype, "roomId", void 0);
+    (0, typeorm_1.ManyToOne)(() => group_entity_1.Group, (group) => group.id, { nullable: true }),
+    __metadata("design:type", Object)
+], Message.prototype, "group", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text'),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
+    __metadata("design:type", Object)
+], Message.prototype, "receiver", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Message.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.Column)('simple-json', { nullable: true }),
-    __metadata("design:type", Object)
-], Message.prototype, "attachments", void 0);
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Message.prototype, "isEdited", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Message.prototype, "isDeleted", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Message.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Message.prototype, "updatedAt", void 0);
 exports.Message = Message = __decorate([
     (0, typeorm_1.Entity)('messages')
 ], Message);

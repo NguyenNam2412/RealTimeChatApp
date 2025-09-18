@@ -9,26 +9,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppController = void 0;
-const common_1 = require("@nestjs/common");
-const app_service_1 = require("./app.service");
-// get request and call service
-let AppController = class AppController {
-    constructor(appService) {
-        this.appService = appService;
-    }
-    async connect() {
-        return this.appService.getHello();
-    }
-};
-exports.AppController = AppController;
+exports.AddMemberDto = void 0;
+const class_validator_1 = require("class-validator");
+class AddMemberDto {
+}
+exports.AddMemberDto = AddMemberDto;
 __decorate([
-    (0, common_1.Get)('helloWorld'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AppController.prototype, "connect", null);
-exports.AppController = AppController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService])
-], AppController);
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], AddMemberDto.prototype, "userId", void 0);

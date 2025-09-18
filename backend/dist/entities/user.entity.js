@@ -19,37 +19,25 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
-    __metadata("design:type", String)
-], User.prototype, "email", void 0);
-__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], User.prototype, "name", void 0);
+], User.prototype, "username", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "avatar", void 0);
+    (0, typeorm_1.Column)({ unique: true, nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "nickname", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 'pending' }),
-    __metadata("design:type", String)
-], User.prototype, "status", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', default: 'user' }),
-    __metadata("design:type", String)
-], User.prototype, "role", void 0);
+    (0, typeorm_1.Column)({ default: null, nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "isApproved", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.UpdateDateColumn)(),
-    __metadata("design:type", Date)
-], User.prototype, "updatedAt", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)('users')
 ], User);
