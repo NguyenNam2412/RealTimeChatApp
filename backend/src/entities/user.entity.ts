@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -8,13 +8,13 @@ export class User {
   @Column()
   username!: string;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ type: 'varchar', unique: true, nullable: true })
   nickname?: string | null;
 
   @Column()
   passwordHash!: string;
 
-@Column({ default: null, nullable: true })
+@Column({ type: 'boolean', default: null, nullable: true })
   isApproved?: boolean | null; // null = pending, true = approved, false = rejected;
 
   @CreateDateColumn()

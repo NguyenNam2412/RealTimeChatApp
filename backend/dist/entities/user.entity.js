@@ -23,7 +23,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "username", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true, nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', unique: true, nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "nickname", void 0);
 __decorate([
@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: null, nullable: true }),
+    (0, typeorm_1.Column)({ type: 'boolean', default: null, nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "isApproved", void 0);
 __decorate([
