@@ -60,13 +60,13 @@ function EmpLogin(props) {
     }
 
     setErrorMsg(null);
-    dispatch({
-      type: authConstants.LOGIN_REQUEST,
-      payload: {
-        side: "employee",
-        empId,
-      },
-    });
+    // dispatch({
+    //   type: authConstants.LOGIN_REQUEST,
+    //   payload: {
+    //     side: "login",
+    //     empId,
+    //   },
+    // });
   };
 
   useEffect(() => {

@@ -1,9 +1,13 @@
-const LOGIN = "auth/Login";
-const REGISTER = "auth/register";
-const LOGOUT = "auth/logout";
+const LOGIN_REQUEST = "LOGIN_REQUEST";
+const LOGIN_SUCCESS = "LOGIN_SUCCESS";
+const LOGIN_FAILURE = "LOGIN_FAILURE";
+const REGISTER = "REGISTER";
+const LOGOUT = "LOGOUT";
 
 const authConstants = {
-  LOGIN,
+  LOGIN_REQUEST,
+  LOGIN_SUCCESS,
+  LOGIN_FAILURE,
   REGISTER,
   LOGOUT,
 };

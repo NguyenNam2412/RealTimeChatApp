@@ -64,7 +64,7 @@ function AdminLogin(props) {
     dispatch({
       type: authConstants.LOGIN_REQUEST,
       payload: {
-        side: "admin",
+        side: "admin/login",
         username,
         password,
       },

@@ -16,15 +16,15 @@ function Navbar() {
 
   return (
     <nav style={navStyle}>
-      <NavLink to="/meal-menus/all" style={linkStyle}>
-        Meal Menus
+      <NavLink to="/admin" style={linkStyle}>
+        user reg request
       </NavLink>
-      <NavLink to="/meal-menus/list-files-meal-menus" style={linkStyle}>
-        Meal Menus Files
+      {/* <NavLink to="/" style={linkStyle}>
+        side 2
       </NavLink>
-      <NavLink to="/meal-menus/list-meal-reg" style={linkStyle}>
-        Meal Registrations
-      </NavLink>
+      <NavLink to="/" style={linkStyle}>
+        side 3
+      </NavLink> */}
     </nav>
   );
 }

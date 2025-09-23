@@ -2,10 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import authConstants from "@constants/authConstants";
 
-function Header() {
+function Header(props) {
+  const { userInfo } = props;
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const empInfo = JSON.parse(localStorage.getItem("empInfo"));
 
   const handleLogout = () => {
     localStorage.clear();
@@ -26,9 +26,7 @@ function Header() {
         color: "#fff",
       }}
     >
-      <div>
-        {empInfo.empName} ({empInfo.empId})
-      </div>
+      <div>{userInfo}</div>
       <button
         style={{
           backgroundColor: "#fff",

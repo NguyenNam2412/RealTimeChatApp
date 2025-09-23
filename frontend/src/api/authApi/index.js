@@ -1,6 +1,6 @@
 import { createAxiosWithToken } from "@api/axiosWithToken";
 
-const authApi = createAxiosWithToken("http://localhost:5000", {
+const authApi = createAxiosWithToken("http://localhost:5000/auth", {
   "Content-Type": "application/json",
 });
 

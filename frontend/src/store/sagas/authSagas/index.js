@@ -4,28 +4,21 @@ import authConstants from "@constants/authConstants";
 
 function* handleLogin(action) {
   try {
-    const side = window.location.pathname;
+    const side = action.payload.side || "login";
     const credentials = {
       username: action.payload.username,
       password: action.payload.password,
     };
-
     const response = yield call(loginApi, side, credentials);
-    yield put({
-      type: authConstants.LOGIN,
-      payload: response.data,
-      meta: { status: "success" },
-    });
+    yield put({ type: authConstants.LOGIN_SUCCESS, payload: response.data });
   } catch (error) {
     yield put({
-      type: authConstants.LOGIN,
+      type: authConstants.LOGIN_FAILURE,
       payload: error.response?.data?.error || "Login failed",
-      error: true,
-      meta: { status: "failure" },
     });
   }
 }
 
-export default function* authSagas() {
-  yield takeLatest(authConstants.LOGIN, handleLogin);
+export default function* authSaga() {
+  yield takeLatest(authConstants.LOGIN_REQUEST, handleLogin);
 }

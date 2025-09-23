@@ -7,7 +7,8 @@ import HomePage from "@pages/Home/HomePage";
 import NotFound from "@pages/Home/NotFound";
 import AdminSide from "@pages/Admin/AdminSide";
 
-//home side
+//admin side
+import AdminApproveSide from "@pages/Admin/adminApproveSide";
 
 const AppRouter = () => (
   <ErrorBoundary fallback={<div>Something went wrong</div>}>
@@ -25,16 +26,15 @@ const AppRouter = () => (
         {/*redirect default Route */}
         <Route index element={<Navigate to="" replace />} />
 
-        {/* real route */}
-        {/* <Route path="" element={} />
-        <Route
+        {/* real route navlink admin*/}
+        <Route path="admin" element={<AdminApproveSide />} />
+        {/* <Route
           path=""
           element={}
         />
         <Route path="" element={} /> */}
       </Route>
-      {/* home side */}
-      <Route path="admin/login" element={<AdminSide />} />
+      <Route path="admin-side" element={<AdminSide />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </ErrorBoundary>

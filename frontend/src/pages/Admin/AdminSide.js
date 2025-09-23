@@ -1,47 +1,26 @@
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import authConstants from "@constants/authConstants";
+import { Outlet } from "react-router-dom";
+import Header from "@components/Header";
+import Navbar from "@components/Navbar";
+
+import { HideScrollBarContainer } from "@styles/common/hideScrollBarContainer.styled";
 
 function AdminSide() {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
   const username = localStorage.getItem("username");
 
-  const handleLogout = () => {
-    localStorage.clear();
-    dispatch({
-      type: authConstants.LOGOUT,
-    });
-    navigate("/login");
-  };
-
   return (
-    <header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 20px",
-        backgroundColor: "#1976d2",
-        color: "#fff",
-      }}
-    >
-      <div>Hello {username}</div>
-      <button
-        style={{
-          backgroundColor: "#fff",
-          color: "#1976d2",
-          border: "none",
-          padding: "6px 12px",
-          cursor: "pointer",
-          borderRadius: "4px",
-          fontWeight: "bold",
-        }}
-        onClick={handleLogout}
+    <HideScrollBarContainer>
+      <div
+        style={{ height: "100vh", display: "flex", flexDirection: "column" }}
       >
-        Logout
-      </button>
-    </header>
+        <Header userInfo={`Hello ${username}`} />
+
+        <Navbar />
+
+        <div style={{ flex: 1, padding: "20px" }}>
+          <Outlet />
+        </div>
+      </div>
+    </HideScrollBarContainer>
   );
 }
 

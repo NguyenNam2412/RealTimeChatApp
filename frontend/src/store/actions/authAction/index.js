@@ -2,12 +2,17 @@ import { createAction } from "@reduxjs/toolkit";
 
 import authConstants from "@constants/authConstants";
 
-const login = createAction(authConstants.LOGIN);
+const loginRequest = createAction(authConstants.LOGIN_REQUEST);
+const loginSuccess = createAction(authConstants.LOGIN_SUCCESS);
+const loginFailure = createAction(authConstants.LOGIN_FAILURE);
+
 const register = createAction(authConstants.REGISTER);
 const logout = createAction(authConstants.LOGOUT);
 
 const authActions = {
-  login,
+  loginRequest,
+  loginSuccess,
+  loginFailure,
   register,
   logout,
 };
