@@ -16,7 +16,7 @@ function Navbar() {
 
   return (
     <nav style={navStyle}>
-      <NavLink to="/admin" style={linkStyle}>
+      <NavLink to="/admin/list-user" style={linkStyle}>
         user reg request
       </NavLink>
       {/* <NavLink to="/" style={linkStyle}>

@@ -3,38 +3,39 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "@pages/Login/LoginPage";
-import HomePage from "@pages/Home/HomePage";
 import NotFound from "@pages/Home/NotFound";
 import AdminSide from "@pages/Admin/AdminSide";
+import ChatApp from "@pages/chat/ChatApp";
 
 //admin side
-import AdminApproveSide from "@pages/Admin/adminApproveSide";
+import ListUserManage from "@pages/Admin/ListUserManage";
 
 const AppRouter = () => (
   <ErrorBoundary fallback={<div>Something went wrong</div>}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      {/* home side */}
+      {/* user side */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <HomePage />
+            <ChatApp />
           </ProtectedRoute>
         }
-      >
+      />
+      {/* adminSide */}
+      <Route path="admin" element={<AdminSide />}>
         {/*redirect default Route */}
-        <Route index element={<Navigate to="" replace />} />
+        <Route index element={<Navigate to="admin/list-user" replace />} />
 
         {/* real route navlink admin*/}
-        <Route path="admin" element={<AdminApproveSide />} />
+        <Route path="admin/list-user" element={<ListUserManage />} />
         {/* <Route
-          path=""
-          element={}
-        />
-        <Route path="" element={} /> */}
+            path=""
+            element={}
+          />
+          <Route path="" element={} /> */}
       </Route>
-      <Route path="admin-side" element={<AdminSide />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </ErrorBoundary>

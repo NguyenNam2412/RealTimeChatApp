@@ -1,6 +1,6 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import { loginRequest as loginApi } from "@api/authApi";
-import authConstants from "@constants/authConstants";
+import { loginRequest as loginApi, register } from "@api/authApi";
+import { authActions } from "@store/slices/authSlice";
 
 function* handleLogin(action) {
   try {
@@ -10,15 +10,27 @@ function* handleLogin(action) {
       password: action.payload.password,
     };
     const response = yield call(loginApi, side, credentials);
-    yield put({ type: authConstants.LOGIN_SUCCESS, payload: response.data });
+    yield put(authActions.loginSuccess(response.data));
   } catch (error) {
-    yield put({
-      type: authConstants.LOGIN_FAILURE,
-      payload: error.response?.data?.error || "Login failed",
-    });
+    yield put(authActions.loginFailure(error.message || "Login failed"));
+  }
+}
+
+function* handleRegister(action) {
+  try {
+    const credentials = {
+      username: action.payload.username,
+      nickname: action.payload.nickname,
+      password: action.payload.password,
+    };
+    const response = yield call(register, credentials);
+    yield put(authActions.registerSuccess(response.data));
+  } catch (error) {
+    yield put(authActions.registerFailure(error.message || "register failed"));
   }
 }
 
 export default function* authSaga() {
-  yield takeLatest(authConstants.LOGIN_REQUEST, handleLogin);
+  yield takeLatest(authActions.loginRequest, handleLogin);
+  yield takeLatest(authActions.registerRequest, handleRegister);
 }

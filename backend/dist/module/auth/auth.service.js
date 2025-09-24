@@ -95,20 +95,22 @@ let AuthService = class AuthService {
         const payload = { sub: user.id, username: user.username, nickname: user.nickname, role: 'user' };
         return {
             status: 'approved',
+            username: user.username,
+            nickname: user.nickname,
             access_token: this.jwtService.sign(payload),
         };
     }
     // Admin Login
     async loginAdmin(dto) {
-        const admin = await this.adminRepo.findOne({ where: { username: dto.username } });
+        const admin = await this.adminRepo.findOne({ where: { username: dto.username, password: dto.password } });
         if (!admin)
             throw new common_1.UnauthorizedException('Invalid credentials');
-        const valid = await bcrypt.compare(dto.password, admin.password);
-        if (!valid)
-            throw new common_1.UnauthorizedException('Invalid credentials');
+        // const valid = await bcrypt.compare(dto.password, admin.password);
+        // if (!valid) throw new UnauthorizedException('Invalid credentials');
         const payload = { sub: admin.id, username: admin.username, role: 'admin' };
         return {
             access_token: this.jwtService.sign(payload),
+            username: admin.username,
         };
     }
 };

@@ -1,26 +1,31 @@
 import { createSelector } from "reselect";
 
 const selectListAllUser = (state) => {
-  return state.listUser;
+  return state.user?.listUser || [];
 };
 
 const selectListUser = createSelector([selectListAllUser], (listAllUser) => {
-  const listApproved = listAllUser.filter((user) => !user?.isApprove);
+  const listApproved = listAllUser.filter((user) => user?.isApproved !== null);
   return listApproved?.length ? listApproved : [];
 });
 
 const selectListUserWaitingApprove = createSelector(
   [selectListAllUser],
   (listAllUser) => {
-    const waitingList = listAllUser.filter((user) => !!user?.isApprove);
+    const waitingList = listAllUser.filter((user) => user?.isApproved === null);
     return waitingList?.length ? waitingList : [];
   }
 );
+
+const selectUserProfile = (state) => {
+  return state.user?.userProfile || null;
+};
 
 const userSelectors = {
   selectListAllUser,
   selectListUser,
   selectListUserWaitingApprove,
+  selectUserProfile,
 };
 
 export default userSelectors;

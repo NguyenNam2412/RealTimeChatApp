@@ -14,7 +14,7 @@ export class User {
   @Column()
   passwordHash!: string;
 
-@Column({ type: 'boolean', default: null, nullable: true })
+  @Column({ type: 'boolean', default: null, nullable: true })
   isApproved?: boolean | null; // null = pending, true = approved, false = rejected;
 
   @CreateDateColumn()

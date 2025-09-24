@@ -1,4 +1,4 @@
-// auth.module.ts
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,6 +10,9 @@ import { Admin } from '@entities/admin.entity';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forFeature([User, Admin]),
     JwtModule.register({
       secret: process.env.JWT_SECRET as string,

@@ -1,5 +1,5 @@
 import axios from "axios";
-import authConstants from "@constants/authConstants";
+import { authActions } from "@store/slices/authSlice";
 import { store } from "@store";
 
 // create axios instance have token
@@ -34,7 +34,7 @@ export const createAxiosWithToken = (baseURL, defaultHeaders = {}) => {
         localStorage.removeItem("token");
         localStorage.removeItem("empInfo");
         localStorage.removeItem("username");
-        store.dispatch({ type: authConstants.LOGOUT });
+        store.dispatch(authActions.logout());
         window.location.href = "/login";
       }
       return Promise.reject(error);

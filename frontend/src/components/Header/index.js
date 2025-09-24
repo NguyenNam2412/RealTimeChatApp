@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import authConstants from "@constants/authConstants";
+import { authActions } from "@store/slices/authSlice";
 
 function Header(props) {
   const { userInfo } = props;
@@ -9,9 +9,7 @@ function Header(props) {
 
   const handleLogout = () => {
     localStorage.clear();
-    dispatch({
-      type: authConstants.LOGOUT,
-    });
+    dispatch(authActions.logout());
     navigate("/login");
   };
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 
-import EmployeeLogin from "./EmpLogin";
+import EmployeeLogin from "./UserLogin";
 import AdminLogin from "./AdminLogin";
 
 const GlobalStyle = createGlobalStyle`
@@ -13,16 +13,16 @@ const GlobalStyle = createGlobalStyle`
     align-items: center;
     min-height: 100vh;
     font-family: 'Jost', sans-serif;
-    background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+    background: linear-gradient(to bottom, #3399FF, #66B2FF);
   }
 `;
 
 const MainContainer = styled.div`
   width: 350px;
-  height: 500px;
+  height: 600px;
   background: red;
   overflow: hidden;
-  background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+  background: linear-gradient(to bottom, #3399ff, #66b2ff);
   border-radius: 10px;
   box-shadow: 5px 20px 50px #000;
   position: relative;

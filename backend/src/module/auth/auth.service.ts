@@ -34,9 +34,23 @@ export class AuthService {
       passwordHash,
       isApproved: null, // pending
     });
-    await this.userRepo.save(newUser);
+    
+    const user = await this.userRepo.save(newUser);
 
-    return { message: 'Registered successfully, waiting for admin approval' };
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      nickname: user.nickname,
+      role: 'user',
+    };
+
+    return { 
+      status: 'pending',
+      userId: user.id,
+      username: user.username,
+      nickname: user.nickname,
+      access_token: this.jwtService.sign(payload),      
+     };
   }
 
   // User Login
@@ -47,31 +61,38 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
+    let approveStatus;
     if (user.isApproved === null) {
-      return { status: 'pending', message: 'Waiting for admin approval' };
+      approveStatus = 'pending';
     }
     if (user.isApproved === false) {
-      return { status: 'rejected', message: 'Account rejected' };
+      approveStatus = 'rejected';
     }
-
+    if (user.isApproved === true) {
+      approveStatus = 'approved';
+    }
     const payload = { sub: user.id, username: user.username, nickname: user.nickname, role: 'user' };
     return {
-      status: 'approved',
+      status: approveStatus,
+      userId: user.id,
+      username: user.username,
+      nickname: user.nickname,
       access_token: this.jwtService.sign(payload),
     };
   }
 
   // Admin Login
   async loginAdmin(dto: LoginDto) {
-    const admin = await this.adminRepo.findOne({ where: { username: dto.username } });
+    const admin = await this.adminRepo.findOne({ where: { username: dto.username, password: dto.password } });
     if (!admin) throw new UnauthorizedException('Invalid credentials');
 
-    const valid = await bcrypt.compare(dto.password, admin.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
+    // const valid = await bcrypt.compare(dto.password, admin.password);
+    // if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const payload = {sub: admin.id, username: admin.username, role: 'admin' };
     return {
       access_token: this.jwtService.sign(payload),
+      username: admin.username,
     };
   }
 }

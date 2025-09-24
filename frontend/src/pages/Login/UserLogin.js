@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import styled, { keyframes } from "styled-components";
 
 import { authActions } from "@store/slices/authSlice";
 import authSelectors from "@store/selectors/authSelectors";
 
+import styled, { keyframes } from "styled-components";
 import {
   StyledInput,
   StyledButton,
@@ -23,22 +23,13 @@ const fadeIn = keyframes`
   }
 `;
 
-const AdminLoginContainer = styled.div`
-  height: 560px;
-  background: #eee;
-  border-radius: 60% / 10%;
-  transition: 0.8s ease-in-out;
-  transform: ${(props) =>
-    props.$isActive ? "translateY(-500px)" : "translateY(-100px)"};
+const UserLoginContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
 
   p {
-    color: #338ce4ff;
     transform: ${(props) => (props.$isActive ? "scale(1)" : "scale(.6)")};
-  }
-
-  input {
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    margin: 15px auto;
   }
 `;
 
@@ -47,7 +38,28 @@ const Form = styled.form`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  padding-top: 0px;
+  height: 100%;
+`;
+
+const AnimatedDiv = styled.div`
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: max-height 0.8s ease-in-out;
+
+  max-height: ${(props) => (props.$isActive ? "200px" : "100px")};
+`;
+
+const SwitchText = styled.span`
+  color: #004a99;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #002d66;
+  }
 `;
 
 const ErrorText = styled.div`
@@ -58,13 +70,19 @@ const ErrorText = styled.div`
   animation: ${fadeIn} 0.3s ease-in-out;
 `;
 
-function AdminLogin(props) {
+const AnimatedInput = styled(StyledInput)`
+  animation: ${fadeIn} 0.5s ease;
+`;
+
+function UserLogin(props) {
   const { isActive, toggleForm } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
+  const [registerMode, setRegisterMode] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const loginSession = useSelector(authSelectors.selectAuthSession);
@@ -80,27 +98,36 @@ function AdminLogin(props) {
     }
 
     setErrorMsg(null);
-    dispatch(
-      authActions.loginRequest({
-        side: "admin/login",
-        username,
-        password,
-      })
-    );
+    if (registerMode) {
+      dispatch(
+        authActions.registerRequest({
+          username,
+          nickname,
+          password,
+        })
+      );
+    } else {
+      dispatch(
+        authActions.loginRequest({
+          side: "login",
+          username,
+          password,
+        })
+      );
+    }
   };
 
   useEffect(() => {
-    if (isActive && reduxError?.toLowerCase().includes("admin")) {
+    if (isActive && reduxError?.toLowerCase().includes("emp")) {
       setErrorMsg("username or password doesn't exist!");
     }
   }, [reduxError, isActive]);
 
   useEffect(() => {
-    if (isActive && loginSession?.access_token?.length) {
+    if (isActive && loginSession?.token) {
       setErrorMsg(null);
-      localStorage.setItem("token", loginSession.access_token);
-      localStorage.setItem("username", loginSession.username);
-      navigate("/admin");
+      localStorage.setItem("token", loginSession.token);
+      navigate("/");
     }
   }, [isActive, loginSession, navigate]);
 
@@ -111,11 +138,11 @@ function AdminLogin(props) {
   }, [isActive]);
 
   return (
-    <AdminLoginContainer $isActive={isActive}>
+    <UserLoginContainer $isActive={isActive} onClick={toggleForm}>
       <Form>
-        <StyledLabel style={{ marginTop: "30px" }} onClick={toggleForm}>
-          Admin Login
-        </StyledLabel>
+        <AnimatedDiv $isActive={isActive}>
+          <StyledLabel>{registerMode ? "Register" : "User Login"}</StyledLabel>
+        </AnimatedDiv>
 
         <StyledInput
           type="text"
@@ -126,6 +153,17 @@ function AdminLogin(props) {
           autoComplete="on"
           disabled={loading}
         />
+
+        {registerMode && (
+          <AnimatedInput
+            type="text"
+            name="nickname"
+            placeholder="Nickname"
+            onChange={(e) => setNickname(e.target.value)}
+            required=""
+            disabled={loading}
+          />
+        )}
 
         <StyledInput
           type="password"
@@ -138,12 +176,30 @@ function AdminLogin(props) {
 
         {errorMsg && <ErrorText>{errorMsg || "Unknown error"}</ErrorText>}
 
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "1.2rem",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {!registerMode ? (
+            <SwitchText onClick={() => setRegisterMode(true)}>
+              Don't have an account? Register
+            </SwitchText>
+          ) : (
+            <SwitchText onClick={() => setRegisterMode(false)}>
+              Already have an account? Login
+            </SwitchText>
+          )}
+        </div>
+
         <StyledButton onClick={isActive && !loading ? handleLogin : null}>
-          Login
+          {registerMode ? "Register" : "Login"}
         </StyledButton>
       </Form>
-    </AdminLoginContainer>
+    </UserLoginContainer>
   );
 }
 
-export default AdminLogin;
+export default UserLogin;

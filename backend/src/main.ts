@@ -7,7 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // catch shutdown signals
   app.enableShutdownHooks();
@@ -16,14 +16,15 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.use(csurf({
-    cookie: true
-  }));
+  // app.use(csurf({
+  //   cookie: true
+  // }));
 
   app.enableCors({
     origin: ['http://localhost:3000'],
-    methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
+    methods: ['GET, HEAD, PUT, PATCH, POST, DELETE'],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

@@ -1,22 +1,24 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 
-import authSelectors from "@store/selectors/authSelectors";
+import { listUserActions } from "@store/slices/userSlice";
+import userSelectors from "@store/selectors/userSelectors";
 
 import StyledTable from "@components/Table";
 
-function AdminSide() {
+function ListUserManage() {
   const dispatch = useDispatch();
 
-  const { listUserRegRequest } = useSelector(
+  const { listUserRegRequest, listUser } = useSelector(
     (state) => ({
-      listUserRegRequest: authSelectors.getListUserRegRequest(state),
+      listUserRegRequest: userSelectors.selectListUserWaitingApprove(state),
+      listUser: userSelectors.selectListUser(state),
     }),
     shallowEqual
   );
 
   useEffect(() => {
-    dispatch({});
+    dispatch(listUserActions.getAllUserRequest());
   }, [dispatch]);
 
   const handleApprove = (row) => {
@@ -41,20 +43,26 @@ function AdminSide() {
       key: "isApproved",
       dataIndex: "isApproved",
       title: "Chờ duyệt",
-      render: (value, row, rowIndex) => (
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button onClick={() => handleApprove(row)}>Approve</button>
-          <button onClick={() => handleReject(row)}>Reject</button>
-        </div>
-      ),
+      render: (value, row, rowIndex) => {
+        if (row.isApproved !== null) return;
+        return (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => handleApprove(row)}>Approve</button>
+            <button onClick={() => handleReject(row)}>Reject</button>
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <div style={{ marginTop: "20px", maxWidth: "500px" }}>
-      <StyledTable columns={columns} data={listUserRegRequest} />
+      <StyledTable
+        columns={columns}
+        data={[...listUserRegRequest, ...listUser]}
+      />
     </div>
   );
 }
 
-export default AdminSide;
+export default ListUserManage;

@@ -32,7 +32,7 @@ export const StyledButton = styled.button`
   justify-content: center;
   display: block;
   color: #fff;
-  background: #573b8a;
+  background: #007bff;
   font-size: 1em;
   font-weight: bold;
   margin-top: 20px;
@@ -43,6 +43,6 @@ export const StyledButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #6d44b8;
+    background: #0056b3;
   }
 `;
