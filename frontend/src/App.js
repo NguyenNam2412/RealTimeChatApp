@@ -4,7 +4,7 @@ import "./App.css";
 import AppRouter from "@routes";
 
 import userSelectors from "@store/selectors/userSelectors";
-import { listUserActions } from "@store/slices/userSlice";
+import { listUserActions } from "@store/slices/userSlices";
 
 function App() {
   const dispatch = useDispatch();

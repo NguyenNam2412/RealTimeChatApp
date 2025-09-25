@@ -27,7 +27,7 @@ interface GroupMessageDto {
 }
 
 @Injectable()
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: { origin: ['http://localhost:3000'] } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;

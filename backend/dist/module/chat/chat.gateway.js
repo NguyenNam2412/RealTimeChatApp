@@ -178,7 +178,7 @@ __decorate([
 ], ChatGateway.prototype, "handleGroupMessage", null);
 exports.ChatGateway = ChatGateway = ChatGateway_1 = __decorate([
     (0, common_1.Injectable)(),
-    (0, websockets_1.WebSocketGateway)({ cors: true }),
+    (0, websockets_1.WebSocketGateway)({ cors: { origin: ['http://localhost:3000'] } }),
     __param(2, (0, typeorm_1.InjectRepository)(group_entity_1.GroupMember)),
     __param(3, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [jwt_1.JwtService,

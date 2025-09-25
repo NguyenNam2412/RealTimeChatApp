@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 
-import { listUserActions } from "@store/slices/userSlice";
+import { listUserActions } from "@store/slices/userSlices";
 import userSelectors from "@store/selectors/userSelectors";
 
 import StyledTable from "@components/Table";

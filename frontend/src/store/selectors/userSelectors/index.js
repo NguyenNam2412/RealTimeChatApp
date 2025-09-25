@@ -18,7 +18,7 @@ const selectListUserWaitingApprove = createSelector(
 );
 
 const selectUserProfile = (state) => {
-  return state.user?.userProfile || null;
+  return state?.user?.userProfile || null;
 };
 
 const userSelectors = {

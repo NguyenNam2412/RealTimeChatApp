@@ -1,6 +1,6 @@
 import { call, put, takeLatest } from "redux-saga/effects";
 import { getAllUserApi, approveUserApi, getUserProfileApi } from "@api/userApi";
-import { listUserActions } from "@store/slices/userSlice";
+import { listUserActions } from "@store/slices/userSlices";
 
 function* getListAllUser() {
   try {

@@ -124,9 +124,9 @@ function UserLogin(props) {
   }, [reduxError, isActive]);
 
   useEffect(() => {
-    if (isActive && loginSession?.token) {
+    if (isActive && loginSession?.access_token?.length) {
       setErrorMsg(null);
-      localStorage.setItem("token", loginSession.token);
+      localStorage.setItem("token", loginSession.access_token);
       navigate("/");
     }
   }, [isActive, loginSession, navigate]);

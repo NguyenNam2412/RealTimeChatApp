@@ -13,6 +13,10 @@ export const SidebarContainer = styled.div`
   padding: 10px;
 `;
 
+export const TopBar = styled.div``;
+
+export const CreateGroupBox = styled.div``;
+
 export const ChatList = styled.div`
   margin-top: 20px;
 `;
