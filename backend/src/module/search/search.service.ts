@@ -17,6 +17,8 @@ export class SearchService {
   async search(dto: SearchDto, userId: string) {
     const { keyword, limit, offset } = dto;
 
+    console.log("keyword:", typeof keyword, keyword);
+
     // 1. Tìm user theo username hoặc nickname
     const users = await this.userRepo.find({
       where: [
@@ -27,6 +29,7 @@ export class SearchService {
       take: limit,
       skip: offset,
     });
+
 
     // 2. Lấy danh sách group mà user là thành viên
     const memberships = await this.groupMemberRepo.find({

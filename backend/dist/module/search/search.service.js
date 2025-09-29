@@ -27,6 +27,7 @@ let SearchService = class SearchService {
     }
     async search(dto, userId) {
         const { keyword, limit, offset } = dto;
+        console.log("keyword:", typeof keyword, keyword);
         // 1. Tìm user theo username hoặc nickname
         const users = await this.userRepo.find({
             where: [
