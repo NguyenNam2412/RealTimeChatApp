@@ -1,11 +1,12 @@
-export const selectSearchResults = (state) => state.search.results;
+export const selectSearchResults = (state) =>
+  state.search?.results ?? { users: [], groups: [] };
 export const selectSearchUsers = (state) =>
-  (state.search.results && state.search.results.users) || [];
+  selectSearchResults(state).users || [];
 export const selectSearchGroups = (state) =>
-  (state.search.results && state.search.results.groups) || [];
-export const selectSearchLoading = (state) => state.search.loading;
-export const selectSearchError = (state) => state.search.error;
-export const selectSearchLastQuery = (state) => state.search.lastQuery;
+  selectSearchResults(state).groups || [];
+export const selectSearchLoading = (state) => state.search?.loading ?? false;
+export const selectSearchError = (state) => state.search?.error ?? null;
+export const selectSearchLastQuery = (state) => state.search?.lastQuery ?? null;
 
 const searchSelectors = {
   selectSearchResults,

@@ -8,5 +8,5 @@ const searchApiWithToken = createAxiosWithToken(
 );
 
 export const searchApi = (searchParams) => {
-  return searchApiWithToken.get("", searchParams);
+  return searchApiWithToken.get("", { params: searchParams });
 };

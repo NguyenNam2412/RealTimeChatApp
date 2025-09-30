@@ -23,5 +23,5 @@ function* handleSearch(action) {
 }
 
 export default function* searchSagas() {
-  yield takeLatest(searchActions.searchRequest, handleSearch);
+  yield takeLatest(searchActions.searchRequest.type, handleSearch);
 }

@@ -43,7 +43,7 @@ function* getApproveUser(action) {
 }
 
 export default function* userSagas() {
-  yield takeLatest(listUserActions.getAllUserRequest, getListAllUser);
-  yield takeLatest(listUserActions.getUserProfileRequest, getUserProfile);
-  yield takeLatest(listUserActions.approveUser, getApproveUser);
+  yield takeLatest(listUserActions.getAllUserRequest.type, getListAllUser);
+  yield takeLatest(listUserActions.getUserProfileRequest.type, getUserProfile);
+  yield takeLatest(listUserActions.approveUser.type, getApproveUser);
 }

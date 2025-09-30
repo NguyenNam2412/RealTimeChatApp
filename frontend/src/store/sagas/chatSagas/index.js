@@ -1,6 +1,7 @@
 import { eventChannel } from "redux-saga";
 import { call, put, takeEvery, take, fork, select } from "redux-saga/effects";
 import chatSocket from "@utils/chat/chatSocket";
+import { sendMessApi, getGroupMessApi, getUserMessApi } from "@api/chatApi";
 import { chatActions } from "@store/slices/chatSlices";
 
 // Tạo channel để nghe socket event
@@ -37,26 +38,25 @@ function decodeTokenUserId() {
 function* listenMessages() {
   const channel = yield call(createSocketChannel, chatSocket);
   while (true) {
-    const msg = yield take(channel); // raw msg from server
-    // determine current user id (try state then token)
-    let currentUserId = null;
-    try {
-      const state = yield select();
-      // adjust according to your auth slice shape if available
-      currentUserId =
-        state.auth?.session?.user?.id || state.auth?.session?.sub || null;
-    } catch {}
+    const payload = yield take(channel); // { event, msg }
+    const msg = payload?.msg ?? payload;
+    // normalize
+    const state = yield select();
+    let currentUserId =
+      state.auth?.session?.user?.id || state.auth?.session?.sub || null;
     if (!currentUserId) {
-      currentUserId = decodeTokenUserId();
+      try {
+        const token =
+          localStorage.getItem("access_token") || localStorage.getItem("token");
+        if (token) currentUserId = JSON.parse(atob(token.split(".")[1])).sub;
+      } catch {}
     }
 
-    // normalize message shape for FE
     const transformed = {
       id: msg.id ?? `srv-${Date.now()}`,
       content: msg.content ?? msg.text ?? "",
-      sender:
-        msg.sender?.username ??
-        (typeof msg.sender === "string" ? msg.sender : null),
+      sender: msg.sender ?? msg.senderId ?? null,
+      senderObj: msg.sender ?? null,
       nickname: msg.sender?.nickname ?? null,
       me: !!(
         msg.sender?.id &&
@@ -67,60 +67,67 @@ function* listenMessages() {
       groupId: msg.group?.id ?? msg.groupId ?? null,
       receiverId: msg.receiver?.id ?? msg.receiverId ?? null,
       raw: msg,
+      _socketEvent: payload?.event ?? null,
     };
 
+    // dispatch to global store
     yield put(chatActions.receiveMessage(transformed));
   }
 }
 
 function* handleSendMessage(action) {
   try {
-    const msg = action.payload;
-    // optimistic local message
-    const tempId = `tmp-${Date.now()}`;
-    const token = localStorage.getItem("token");
-    let meUser = null;
-    try {
-      if (token) {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        meUser = payload.username || null;
-      }
-    } catch {}
+    const payload = action.payload; // { content, groupId?, receiverId? }
 
-    const optimistic = {
-      id: tempId,
-      content: msg.content,
-      sender: meUser,
-      nickname: null,
-      me: true,
-      createdAt: new Date().toISOString(),
-      groupId: msg.groupId ?? null,
-      receiverId: msg.receiverId ?? null,
-    };
+    const response = yield call(sendMessApi, payload);
+    const saved = response.data ?? response;
 
-    // emit correct event
-    if (msg.groupId) {
-      chatSocket.emit("group_message", {
-        groupId: msg.groupId,
-        content: msg.content,
-      });
-    } else if (msg.receiverId) {
-      chatSocket.emit("private_message", {
-        to: msg.receiverId,
-        content: msg.content,
-      });
-    } else {
-      throw new Error("Must provide groupId or receiverId");
-    }
-
-    // update local state optimistically
-    yield put(chatActions.sendMessageSuccess(optimistic));
+    yield put(chatActions.sendMessageSuccess(saved));
   } catch (err) {
-    yield put(chatActions.sendMessageFailure(err.message));
+    yield put(chatActions.sendMessageFailure(err.message || String(err)));
+  }
+}
+
+function* fetchUserMessagesSaga(action) {
+  try {
+    const userId = action.payload;
+    const res = yield call(getUserMessApi, userId);
+    yield put(
+      chatActions.fetchUserMessagesSuccess({
+        userId,
+        messages: res.data,
+      })
+    );
+  } catch (error) {
+    yield put(chatActions.fetchUserMessagesFailure(error.message));
+  }
+}
+
+// worker saga: group messages
+function* fetchGroupMessagesSaga(action) {
+  try {
+    const groupId = action.payload;
+    const res = yield call(getGroupMessApi, groupId);
+    yield put(
+      chatActions.fetchGroupMessagesSuccess({
+        groupId,
+        messages: res.data,
+      })
+    );
+  } catch (error) {
+    yield put(chatActions.fetchGroupMessagesFailure(error.message));
   }
 }
 
 export default function* messageSaga() {
   yield fork(listenMessages);
-  yield takeEvery(chatActions.sendMessageRequest, handleSendMessage);
+  yield takeEvery(chatActions.sendMessageRequest.type, handleSendMessage);
+  yield takeEvery(
+    chatActions.fetchUserMessagesRequest.type,
+    fetchUserMessagesSaga
+  );
+  yield takeEvery(
+    chatActions.fetchGroupMessagesRequest.type,
+    fetchGroupMessagesSaga
+  );
 }

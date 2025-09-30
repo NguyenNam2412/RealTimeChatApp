@@ -13,5 +13,5 @@ function* handleCreateGroup(action) {
 }
 
 export default function* groupSagas() {
-  yield takeLatest(groupActions.createGroupRequest, handleCreateGroup);
+  yield takeLatest(groupActions.createGroupRequest.type, handleCreateGroup);
 }

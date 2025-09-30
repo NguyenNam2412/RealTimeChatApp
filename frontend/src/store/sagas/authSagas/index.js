@@ -31,6 +31,6 @@ function* handleRegister(action) {
 }
 
 export default function* authSaga() {
-  yield takeLatest(authActions.loginRequest, handleLogin);
-  yield takeLatest(authActions.registerRequest, handleRegister);
+  yield takeLatest(authActions.loginRequest.type, handleLogin);
+  yield takeLatest(authActions.registerRequest.type, handleRegister);
 }

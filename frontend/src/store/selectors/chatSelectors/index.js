@@ -1,18 +1,27 @@
-const selectAllMessages = (state) => state.chat.messages;
-const selectLoading = (state) => state.chat.loading;
-const selectError = (state) => state.chat.error;
+const selectUserMessages = (userId) => (state) =>
+  state.messages.userMessages[userId] || [];
 
-const selectMyMessages = (state) => state.chat.messages.filter((msg) => msg.me);
+const selectGroupMessages = (groupId) => (state) =>
+  state.messages.groupMessages[groupId] || [];
 
-const selectMessagesBySender = (sender) => (state) =>
-  state.chat.messages.filter((msg) => msg.sender === sender);
+const selectAllMessages = (state) => state.chat?.allMessages || [];
+
+const selectMessagesForTarget = (target) => (state) => {
+  if (!target) return [];
+  if (target.type === "group") return selectGroupMessages(target.id)(state);
+  return selectUserMessages(target.id)(state);
+};
+
+const selectLoading = (state) => state.messages.loading;
+const selectError = (state) => state.messages.error;
 
 const messageSelectors = {
+  selectUserMessages,
+  selectGroupMessages,
   selectAllMessages,
+  selectMessagesForTarget,
   selectLoading,
   selectError,
-  selectMyMessages,
-  selectMessagesBySender,
 };
 
 export default messageSelectors;

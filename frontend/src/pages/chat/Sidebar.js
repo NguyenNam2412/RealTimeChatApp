@@ -15,6 +15,17 @@ import { searchActions } from "@store/slices/searchSlices";
 import { groupActions } from "@store/slices/groupSlices";
 import { selectSearchUsers } from "@store/selectors/searchSelectors";
 
+function getCurrentUserIdFromToken() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload?.sub || payload?.id || null;
+  } catch {
+    return null;
+  }
+}
+
 function Sidebar(props) {
   const { selectedTarget, setSelectedTarget } = props;
   const dispatch = useDispatch();
@@ -26,7 +37,12 @@ function Sidebar(props) {
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [filteredResults, setFilteredResults] = useState([]);
+  const debounceRef = useRef(null);
   const inputRef = useRef(null);
+
+  const currentUserId = getCurrentUserIdFromToken();
 
   // load groups once
   useEffect(() => {
@@ -45,20 +61,47 @@ function Sidebar(props) {
 
   // debounce search: wait 400ms after user stops typing
   useEffect(() => {
-    const q = search.trim();
+    // clear previous timer
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    const q = (search || "").trim();
     if (!q) {
-      dispatch(searchActions.clearSearch?.() ?? searchActions.searchClear?.());
+      // clear results
+      dispatch(searchActions.clearSearch?.() ?? searchActions.clearSearch());
       setDropdownVisible(false);
+      setSearchLoading(false);
+      setFilteredResults([]);
       return;
     }
-    setDropdownVisible(true);
-    const id = setTimeout(() => {
+
+    setSearchLoading(true);
+    // schedule API call after 400ms
+    debounceRef.current = setTimeout(() => {
       dispatch(
         searchActions.searchRequest({ keyword: q, limit: 20, offset: 0 })
       );
     }, 400);
-    return () => clearTimeout(id);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [search, dispatch]);
+
+  // when results update, filter out current user and control dropdown visibility
+  useEffect(() => {
+    const filtered = (results || []).filter((r) => {
+      // ensure r.id exists and is not current user
+      if (!r) return false;
+      const id = r.id ?? r.userId ?? r._id ?? null;
+      if (!id) return false;
+      return id !== currentUserId;
+    });
+    setFilteredResults(filtered);
+    setSearchLoading(false);
+    setDropdownVisible(filtered.length > 0);
+  }, [results, currentUserId]);
 
   // click outside to close dropdown
   useEffect(() => {
@@ -95,7 +138,9 @@ function Sidebar(props) {
   };
 
   const handleSelectResult = (r) => {
-    const target = { type: "private", id: r.id, name: r.username || r.name };
+    const id = r.id ?? r.userId ?? r._id;
+    const name = r.username || r.name || r.displayName || id;
+    const target = { type: "private", id, name };
     setSelectedTarget(target);
     // thêm vào contacts nếu chưa tồn tại (ở trên cùng)
     setContacts((prev) => {
@@ -108,7 +153,7 @@ function Sidebar(props) {
 
   return (
     <SidebarContainer>
-      <TopBar ref={inputRef}>
+      <TopBar ref={inputRef} style={{ position: "relative" }}>
         <form
           onSubmit={(e) => e.preventDefault()}
           style={{ display: "flex", width: "100%" }}
@@ -120,43 +165,50 @@ function Sidebar(props) {
             style={{ flex: 1 }}
             aria-label="search"
             onFocus={() => {
-              if (search.trim()) setDropdownVisible(true);
+              if (search.trim() && filteredResults.length)
+                setDropdownVisible(true);
             }}
           />
           <button
             type="button"
             onClick={() => {
-              if (search.trim())
-                dispatch(
-                  searchActions.searchRequest({
-                    keyword: search.trim(),
-                    limit: 20,
-                    offset: 0,
-                  })
-                );
+              const q = search.trim();
+              if (!q) return;
+              setSearchLoading(true);
+              dispatch(
+                searchActions.searchRequest({
+                  keyword: q,
+                  limit: 20,
+                  offset: 0,
+                })
+              );
             }}
           >
             Tìm
           </button>
         </form>
 
-        {dropdownVisible && results && results.length > 0 && (
+        {dropdownVisible && (
           <SearchDropdown>
-            {results.map((r) => (
-              <DropdownItem
-                key={`${r.id}`}
-                onClick={() =>
-                  handleSelectResult({
-                    ...r,
-                    type: "private",
-                    name: r.username || r.name,
-                  })
-                }
-              >
-                <div className="title">{r.username || r.name}</div>
-                <small>{r.nickname ?? ""}</small>
-              </DropdownItem>
-            ))}
+            {searchLoading && <div style={{ padding: 8 }}>Đang tìm...</div>}
+            {!searchLoading && filteredResults.length === 0 && (
+              <div style={{ padding: 8, color: "#666" }}>Không có kết quả</div>
+            )}
+            {!searchLoading &&
+              filteredResults.map((r) => {
+                const id = r.id ?? r.userId ?? r._id;
+                const name = r.username || r.name || r.displayName || id;
+                return (
+                  <DropdownItem
+                    key={id}
+                    onClick={() => handleSelectResult(r)}
+                    title={name}
+                  >
+                    <div className="title">{name}</div>
+                    <small>{r.nickname ?? ""}</small>
+                  </DropdownItem>
+                );
+              })}
           </SearchDropdown>
         )}
       </TopBar>

@@ -18,7 +18,14 @@ const slice = createSlice({
     },
     searchSuccess: (state, action) => {
       state.loading = false;
-      state.results = action.payload;
+      const payload =
+        action.payload && action.payload.data
+          ? action.payload.data
+          : action.payload || {};
+      state.results = {
+        users: Array.isArray(payload.users) ? payload.users : [],
+        groups: Array.isArray(payload.groups) ? payload.groups : [],
+      };
     },
     searchFailure: (state, action) => {
       state.loading = false;
