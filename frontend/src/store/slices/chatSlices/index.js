@@ -31,7 +31,7 @@ const addMessageToState = (state, msg) => {
 };
 
 const messageSlice = createSlice({
-  name: "chat",
+  name: "messages",
   initialState,
   reducers: {
     sendMessageRequest: (state, action) => {

@@ -17,15 +17,13 @@ export class SearchService {
   async search(dto: SearchDto, userId: string) {
     const { keyword, limit, offset } = dto;
 
-    console.log("keyword:", typeof keyword, keyword);
-
     // 1. Tìm user theo username hoặc nickname
     const users = await this.userRepo.find({
       where: [
         { username: ILike(`%${keyword}%`) },
         { nickname: ILike(`%${keyword}%`) },
       ],
-      select: ['id', 'username', 'nickname'], // chỉ select field cần thiết
+      select: ['id', 'username', 'nickname', 'isApproved'], // chỉ select field cần thiết
       take: limit,
       skip: offset,
     });

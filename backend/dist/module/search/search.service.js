@@ -27,14 +27,13 @@ let SearchService = class SearchService {
     }
     async search(dto, userId) {
         const { keyword, limit, offset } = dto;
-        console.log("keyword:", typeof keyword, keyword);
         // 1. Tìm user theo username hoặc nickname
         const users = await this.userRepo.find({
             where: [
                 { username: (0, typeorm_2.ILike)(`%${keyword}%`) },
                 { nickname: (0, typeorm_2.ILike)(`%${keyword}%`) },
             ],
-            select: ['id', 'username', 'nickname'], // chỉ select field cần thiết
+            select: ['id', 'username', 'nickname', 'isApproved'], // chỉ select field cần thiết
             take: limit,
             skip: offset,
         });

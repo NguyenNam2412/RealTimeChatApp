@@ -1,8 +1,8 @@
 const selectUserMessages = (userId) => (state) =>
-  state.messages.userMessages[userId] || [];
+  state.chat?.userMessages[userId] || [];
 
 const selectGroupMessages = (groupId) => (state) =>
-  state.messages.groupMessages[groupId] || [];
+  state.chat?.groupMessages[groupId] || [];
 
 const selectAllMessages = (state) => state.chat?.allMessages || [];
 
@@ -12,8 +12,10 @@ const selectMessagesForTarget = (target) => (state) => {
   return selectUserMessages(target.id)(state);
 };
 
-const selectLoading = (state) => state.messages.loading;
-const selectError = (state) => state.messages.error;
+const selectLoading = (state) => {
+  return state.chat?.loading;
+};
+const selectError = (state) => state.chat?.error;
 
 const messageSelectors = {
   selectUserMessages,

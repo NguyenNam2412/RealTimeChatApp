@@ -44,21 +44,6 @@ function Sidebar(props) {
 
   const currentUserId = getCurrentUserIdFromToken();
 
-  // load groups once
-  useEffect(() => {
-    const token =
-      localStorage.getItem("access_token") || localStorage.getItem("token");
-    if (!token) return;
-    fetch("http://localhost:3000/groups", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setGroups(data);
-      })
-      .catch(() => {});
-  }, []);
-
   // debounce search: wait 400ms after user stops typing
   useEffect(() => {
     // clear previous timer
@@ -96,7 +81,9 @@ function Sidebar(props) {
       if (!r) return false;
       const id = r.id ?? r.userId ?? r._id ?? null;
       if (!id) return false;
-      return id !== currentUserId;
+      if (id === currentUserId) return false;
+      if ("isApproved" in r && r.isApproved !== true) return false;
+      return true;
     });
     setFilteredResults(filtered);
     setSearchLoading(false);

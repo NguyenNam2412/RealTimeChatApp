@@ -24,17 +24,6 @@ function createSocketChannel(socket) {
   });
 }
 
-function decodeTokenUserId() {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.sub || payload.id || null;
-  } catch {
-    return null;
-  }
-}
-
 function* listenMessages() {
   const channel = yield call(createSocketChannel, chatSocket);
   while (true) {

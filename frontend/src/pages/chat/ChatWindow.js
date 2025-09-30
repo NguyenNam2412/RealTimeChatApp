@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import messageSelectors from "@store/selectors/chatSelectors";
 import { chatActions } from "@store/slices/chatSlices";
 
@@ -27,10 +27,13 @@ function ChatWindow(props) {
   const messages = useSelector(messageSelectors.selectAllMessages);
   const loading = useSelector(messageSelectors.selectLoading);
   const error = useSelector(messageSelectors.selectError);
-  // use a single selector that returns messages for the current target (handles null target)
-  const storeTargetMessages = useSelector((state) =>
-    messageSelectors.selectMessagesForTarget(selectedTarget)(state)
-  );
+  // stable selector: read messages map directly to avoid creating selector factory every render
+  const storeTargetMessages = useSelector((state) => {
+    if (!selectedTarget) return [];
+    return selectedTarget.type === "group"
+      ? state.chat?.groupMessages?.[selectedTarget.id] ?? []
+      : state.chat?.userMessages?.[selectedTarget.id] ?? [];
+  }, shallowEqual);
   const prevMsgsRef = useRef(new Set());
 
   const [input, setInput] = useState("");
@@ -54,20 +57,27 @@ function ChatWindow(props) {
     prevMsgsRef.current = new Set();
   }, [selectedTarget, dispatch]);
 
-  // storeTargetMessages (from useSelector above) updates when store or selectedTarget changes
-
+  // only set historyMessages when the list of message ids actually changes
   useEffect(() => {
-    if (selectedTarget) {
-      setHistoryMessages(
-        Array.isArray(storeTargetMessages) ? storeTargetMessages : []
-      );
-      setLoadingHistory(false);
-      prevMsgsRef.current = new Set(
-        (Array.isArray(storeTargetMessages) ? storeTargetMessages : []).map(
-          (m) => m.id
-        )
-      );
+    if (!selectedTarget) return;
+    const newMessages = Array.isArray(storeTargetMessages)
+      ? storeTargetMessages
+      : [];
+    const prev = Array.isArray(historyMessages) ? historyMessages : [];
+
+    const idsEqual = (() => {
+      if (prev.length !== newMessages.length) return false;
+      for (let i = 0; i < prev.length; i++) {
+        if (prev[i]?.id !== newMessages[i]?.id) return false;
+      }
+      return true;
+    })();
+
+    if (!idsEqual) {
+      setHistoryMessages(newMessages);
     }
+    setLoadingHistory(false);
+    prevMsgsRef.current = new Set(newMessages.map((m) => m.id));
   }, [storeTargetMessages, selectedTarget]);
 
   // filter messages relevant to selectedTarget
