@@ -35,6 +35,8 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     }
     async handleConnection(client) {
         try {
+            this.logger.log(`New socket connection: ${client.handshake.url}`);
+            this.logger.log(`Full handshake: ${JSON.stringify(client.handshake, null, 2)}`);
             const token = (client.handshake.auth && client.handshake.auth.token) ||
                 (client.handshake.query && client.handshake.query.token);
             if (!token) {
@@ -178,7 +180,7 @@ __decorate([
 ], ChatGateway.prototype, "handleGroupMessage", null);
 exports.ChatGateway = ChatGateway = ChatGateway_1 = __decorate([
     (0, common_1.Injectable)(),
-    (0, websockets_1.WebSocketGateway)({ cors: { origin: ['http://localhost:3000'] } }),
+    (0, websockets_1.WebSocketGateway)({ cors: { origin: ['http://localhost:3000'] }, transports: ["websocket"], pingInterval: 20000, pingTimeout: 20000 }),
     __param(2, (0, typeorm_1.InjectRepository)(group_entity_1.GroupMember)),
     __param(3, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [jwt_1.JwtService,

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -13,6 +13,8 @@ import {
 
 import { searchActions } from "@store/slices/searchSlices";
 import { groupActions } from "@store/slices/groupSlices";
+import { listUserActions } from "@store/slices/userSlices";
+import userSelectors from "@store/selectors/userSelectors";
 import { selectSearchUsers } from "@store/selectors/searchSelectors";
 
 function getCurrentUserIdFromToken() {
@@ -30,6 +32,7 @@ function Sidebar(props) {
   const { selectedTarget, setSelectedTarget } = props;
   const dispatch = useDispatch();
   const results = useSelector(selectSearchUsers);
+  const conversations = useSelector(userSelectors.selectUserConversations);
   const [groups, setGroups] = useState([]);
   const [contacts, setContacts] = useState([]); // lưu private chats đã chọn
   const [search, setSearch] = useState("");
@@ -43,6 +46,60 @@ function Sidebar(props) {
   const inputRef = useRef(null);
 
   const currentUserId = getCurrentUserIdFromToken();
+
+  // derive contacts (private) and groups from server conversations
+  const { serverContacts, serverGroups } = useMemo(() => {
+    const cts = [];
+    const grs = [];
+    (conversations || []).forEach((c) => {
+      const lm = c.lastMessage ?? c.last_message ?? null;
+      // group conversation case
+      const groupId = c.groupId ?? c.group?.id ?? (lm && lm.group?.id) ?? null;
+      if (groupId) {
+        const name =
+          c.groupName ?? c.group?.name ?? lm?.group?.name ?? `Group ${groupId}`;
+        grs.push({ type: "group", id: groupId, name, raw: c });
+        return;
+      }
+
+      // private conversation: try to read other user from lastMessage or conversation shape
+      let peer = null;
+      if (lm) {
+        // lastMessage has sender and receiver
+        if (lm.sender?.id === currentUserId) peer = lm.receiver;
+        else peer = lm.sender;
+      }
+      // fallback fields
+      const id =
+        peer?.id ??
+        c.peerId ??
+        c.userId ??
+        c.otherUserId ??
+        c.participantId ??
+        c.id;
+      const name =
+        peer?.nickname ??
+        peer?.username ??
+        c.peerName ??
+        c.username ??
+        `User ${id}`;
+      if (id) {
+        cts.push({ type: "private", id, name, raw: c });
+      }
+    });
+    return { serverContacts: cts, serverGroups: grs };
+  }, [conversations, currentUserId]);
+
+  // combine server contacts first, then local contacts (de-duplicate by id+type)
+  const combinedContacts = useMemo(() => {
+    const map = new Map();
+    serverContacts.forEach((t) => map.set(`${t.type}:${t.id}`, t));
+    contacts.forEach((t) => {
+      const key = `${t.type}:${t.id}`;
+      if (!map.has(key)) map.set(key, t);
+    });
+    return Array.from(map.values());
+  }, [serverContacts, contacts]);
 
   // debounce search: wait 400ms after user stops typing
   useEffect(() => {
@@ -90,6 +147,11 @@ function Sidebar(props) {
     setDropdownVisible(filtered.length > 0);
   }, [results, currentUserId]);
 
+  // load conversations on mount
+  useEffect(() => {
+    dispatch(listUserActions.getUserConversationsRequest());
+  }, [dispatch]);
+
   // click outside to close dropdown
   useEffect(() => {
     function onDoc(e) {
@@ -133,6 +195,18 @@ function Sidebar(props) {
     setContacts((prev) => {
       if (prev.find((c) => c.id === target.id)) return prev;
       return [target, ...prev].slice(0, 50); // tối đa 50 contacts lưu tạm
+    });
+    setDropdownVisible(false);
+    setSearch("");
+  };
+
+  const openTarget = (target) => {
+    if (!target) return;
+    setSelectedTarget(target);
+    setContacts((prev) => {
+      if (prev.find((x) => x.id === target.id && x.type === target.type))
+        return prev;
+      return [target, ...prev].slice(0, 50);
     });
     setDropdownVisible(false);
     setSearch("");
@@ -200,44 +274,41 @@ function Sidebar(props) {
         )}
       </TopBar>
 
-      {/* Contacts (private chats) - hiển thị top, không trùng với dropdown */}
+      {/* Contacts (server + local) */}
       <h3>Contacts</h3>
       <ChatList>
-        {contacts.length === 0 && (
+        {combinedContacts.length === 0 && (
           <div style={{ padding: 8, color: "#666" }}>
             Bạn chưa trò chuyện với ai
           </div>
         )}
-        {contacts.map((c) => (
+        {combinedContacts.map((t) => (
           <ChatItem
-            key={`contact-${c.id}`}
-            onClick={() => setSelectedTarget(c)}
+            key={`contact-${t.id}`}
+            onClick={() => openTarget(t)}
             style={{
               background:
-                selectedTarget?.type === "private" &&
-                selectedTarget?.id === c.id
+                selectedTarget?.type === t.type && selectedTarget?.id === t.id
                   ? "rgba(0,74,153,0.08)"
                   : undefined,
             }}
           >
-            <span className="title">{c.name}</span>
+            <span className="title">{t.name}</span>
             <small>User</small>
           </ChatItem>
         ))}
       </ChatList>
 
-      {/* Groups */}
+      {/* Groups (server) */}
       <h3>Groups</h3>
       <ChatList>
-        {groups.length === 0 && (
-          <div style={{ padding: 8, color: "#666" }}>Bạn chưa có nhóm</div>
+        {serverGroups.length === 0 && (
+          <div style={{ padding: 8, color: "#666" }}>Không có nhóm</div>
         )}
-        {groups.map((g) => (
+        {serverGroups.map((g) => (
           <ChatItem
-            key={g.id}
-            onClick={() =>
-              setSelectedTarget({ type: "group", id: g.id, name: g.name })
-            }
+            key={`group-${g.id}`}
+            onClick={() => openTarget(g)}
             style={{
               background:
                 selectedTarget?.type === "group" && selectedTarget?.id === g.id
@@ -246,7 +317,7 @@ function Sidebar(props) {
             }}
           >
             <span className="title">{g.name}</span>
-            <small>{g.members ?? ""} members</small>
+            <small>Group</small>
           </ChatItem>
         ))}
       </ChatList>

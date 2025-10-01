@@ -27,7 +27,7 @@ interface GroupMessageDto {
 }
 
 @Injectable()
-@WebSocketGateway({ cors: { origin: ['http://localhost:3000'] } })
+@WebSocketGateway({ cors: { origin: ['http://localhost:3000'] }, transports: ["websocket"], pingInterval: 20000, pingTimeout: 20000 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
@@ -45,6 +45,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     try {
+      this.logger.log(`New socket connection: ${client.handshake.url}`);
+      this.logger.log(`Full handshake: ${JSON.stringify(client.handshake, null, 2)}`);
+
+
       const token =
         (client.handshake.auth && client.handshake.auth.token) ||
         (client.handshake.query && (client.handshake.query.token as string));

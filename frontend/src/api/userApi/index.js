@@ -8,7 +8,7 @@ const axiosAdminApiWithToken = createAxiosWithToken(
 );
 
 const axiosUserApiWithToken = createAxiosWithToken(
-  "http://localhost:5000/user",
+  "http://localhost:5000/users",
   {
     "Content-Type": "application/json",
   }
@@ -24,4 +24,8 @@ export const approveUserApi = (id, approve) => {
 
 export const getUserProfileApi = () => {
   return axiosUserApiWithToken.get("me");
+};
+
+export const getConversationsApi = () => {
+  return axiosUserApiWithToken.get("conversations");
 };

@@ -13,6 +13,11 @@ export class UsersController {
     return this.usersService.getProfile(req.user.sub);
   }
 
+  @Get('conversations')
+  async getConversations(@Req() req: any) {
+    return this.usersService.getConversations(req.user.sub);
+  }
+
   @Patch('me')
   updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
     return this.usersService.updateProfile(req.user.sub, dto);

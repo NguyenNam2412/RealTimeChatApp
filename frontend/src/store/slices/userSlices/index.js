@@ -4,6 +4,7 @@ const listUser = createSlice({
   name: "user",
   initialState: {
     listUser: [],
+    conversations: [],
     userProfile: null,
     loading: false,
     error: null,
@@ -21,6 +22,20 @@ const listUser = createSlice({
     getAllUserFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload || "get all user error";
+    },
+    // get conversations
+    getUserConversationsRequest: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    getUserConversationsSuccess: (state, action) => {
+      state.conversations = Array.isArray(action.payload) ? action.payload : [];
+      state.loading = false;
+      state.error = null;
+    },
+    getUserConversationsFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload || "get conversations error";
     },
     // get user profile
     getUserProfileRequest: (state) => {

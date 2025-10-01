@@ -21,11 +21,16 @@ const selectUserProfile = (state) => {
   return state?.user?.userProfile || null;
 };
 
+const selectUserConversations = (state) => {
+  return state.user?.conversations ?? [];
+};
+
 const userSelectors = {
   selectListAllUser,
   selectListUser,
   selectListUserWaitingApprove,
   selectUserProfile,
+  selectUserConversations,
 };
 
 export default userSelectors;

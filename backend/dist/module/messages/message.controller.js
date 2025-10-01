@@ -31,11 +31,15 @@ let MessageController = class MessageController {
     remove(req, id) {
         return this.messageService.remove(req.user.sub, id);
     }
-    getGroupMessages(id) {
-        return this.messageService.getGroupMessages(id);
+    getGroupMessages(id, limit, offset) {
+        const l = Number.isFinite(Number(limit)) ? Number(limit) : 20;
+        const o = Number.isFinite(Number(offset)) ? Number(offset) : 0;
+        return this.messageService.getGroupMessages(id, l, o);
     }
-    getPrivateMessages(req, otherUserId) {
-        return this.messageService.getPrivateMessages(req.user.sub, otherUserId);
+    getPrivateMessages(req, otherUserId, limit, offset) {
+        const l = Number.isFinite(Number(limit)) ? Number(limit) : 20;
+        const o = Number.isFinite(Number(offset)) ? Number(offset) : 0;
+        return this.messageService.getPrivateMessages(req.user.sub, otherUserId, l, o);
     }
 };
 exports.MessageController = MessageController;
@@ -67,16 +71,20 @@ __decorate([
 __decorate([
     (0, common_1.Get)('group/:id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('offset')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], MessageController.prototype, "getGroupMessages", null);
 __decorate([
     (0, common_1.Get)('private/:otherUserId'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('otherUserId')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('offset')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", void 0)
 ], MessageController.prototype, "getPrivateMessages", null);
 exports.MessageController = MessageController = __decorate([

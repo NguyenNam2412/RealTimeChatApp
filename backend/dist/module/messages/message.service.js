@@ -82,22 +82,32 @@ let MessageService = class MessageService {
         msg.isDeleted = true;
         return this.messageRepo.save(msg);
     }
-    async getGroupMessages(groupId) {
-        return this.messageRepo.find({
-            where: { group: { id: groupId }, isDeleted: false },
-            relations: ['sender'],
-            order: { createdAt: 'ASC' },
-        });
+    async getGroupMessages(groupId, limit = 20, offset = 0) {
+        const qb = this.messageRepo
+            .createQueryBuilder('m')
+            .leftJoinAndSelect('m.sender', 'sender')
+            .where('m.groupId = :groupId', { groupId })
+            .andWhere('m.isDeleted = false')
+            .orderBy('m.createdAt', 'DESC')
+            .skip(offset)
+            .take(limit);
+        const rows = await qb.getMany();
+        // return oldest -> newest
+        return rows.reverse();
     }
-    async getPrivateMessages(userId, otherUserId) {
-        return this.messageRepo.find({
-            where: [
-                { sender: { id: userId }, receiver: { id: otherUserId }, isDeleted: false },
-                { sender: { id: otherUserId }, receiver: { id: userId }, isDeleted: false },
-            ],
-            relations: ['sender', 'receiver'],
-            order: { createdAt: 'ASC' },
-        });
+    async getPrivateMessages(userId, otherUserId, limit = 20, offset = 0) {
+        const qb = this.messageRepo
+            .createQueryBuilder('m')
+            .leftJoinAndSelect('m.sender', 'sender')
+            .leftJoinAndSelect('m.receiver', 'receiver')
+            .where('m.isDeleted = false')
+            .andWhere('((sender.id = :userId AND receiver.id = :otherId) OR (sender.id = :otherId AND receiver.id = :userId))', { userId, otherId: otherUserId })
+            .orderBy('m.createdAt', 'DESC')
+            .skip(offset)
+            .take(limit);
+        const rows = await qb.getMany();
+        // return oldest -> newest
+        return rows.reverse();
     }
 };
 exports.MessageService = MessageService;

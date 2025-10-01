@@ -18,16 +18,52 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("../../entities/user.entity");
 const group_entity_1 = require("../../entities/group.entity");
+const message_entity_1 = require("../../entities/message.entity");
 let UsersService = class UsersService {
-    constructor(userRepo, memberRepo) {
+    constructor(userRepo, memberRepo, userMessRepo) {
         this.userRepo = userRepo;
         this.memberRepo = memberRepo;
+        this.userMessRepo = userMessRepo;
     }
     async getProfile(userId) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
         if (!user)
             throw new common_1.NotFoundException('User not found');
         return user;
+    }
+    async getConversations(userId) {
+        // Lấy danh sách otherUserId đã chat (join sender/receiver và dùng sender.id / receiver.id)
+        const otherExpr = `CASE WHEN sender.id = :userId THEN receiver.id ELSE sender.id END`;
+        const raw = await this.userMessRepo
+            .createQueryBuilder("m")
+            .leftJoin("m.sender", "sender")
+            .leftJoin("m.receiver", "receiver")
+            .select(`${otherExpr}`, "otherUserId")
+            .addSelect("MAX(m.createdAt)", "lastMessageAt")
+            .where("sender.id = :userId OR receiver.id = :userId", { userId })
+            // group by the same expression (not the alias) so Postgres accepts it
+            .groupBy(otherExpr)
+            // order by the aggregate expression directly to avoid alias resolution issues in Postgres
+            .orderBy("MAX(m.createdAt)", "DESC")
+            .setParameter("userId", userId)
+            .getRawMany();
+        const conversations = [];
+        for (const row of raw) {
+            const otherUserId = row.otherUserId;
+            const lastMessage = await this.userMessRepo.findOne({
+                where: [
+                    { sender: { id: userId }, receiver: { id: otherUserId } },
+                    { sender: { id: otherUserId }, receiver: { id: userId } },
+                ],
+                relations: ["sender", "receiver"],
+                order: { createdAt: "DESC" },
+            });
+            conversations.push({
+                otherUserId,
+                lastMessage,
+            });
+        }
+        return conversations;
     }
     async updateProfile(userId, dto) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
@@ -60,6 +96,8 @@ exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(group_entity_1.GroupMember)),
+    __param(2, (0, typeorm_1.InjectRepository)(message_entity_1.Message)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], UsersService);

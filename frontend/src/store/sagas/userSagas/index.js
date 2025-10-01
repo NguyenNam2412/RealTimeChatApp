@@ -1,5 +1,10 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import { getAllUserApi, approveUserApi, getUserProfileApi } from "@api/userApi";
+import {
+  getAllUserApi,
+  approveUserApi,
+  getUserProfileApi,
+  getConversationsApi,
+} from "@api/userApi";
 import { listUserActions } from "@store/slices/userSlices";
 
 function* getListAllUser() {
@@ -10,6 +15,21 @@ function* getListAllUser() {
     yield put(
       listUserActions.getAllUserFailure(
         error.message || "can not get list all user"
+      )
+    );
+  }
+}
+
+function* getConversationsSaga() {
+  try {
+    const res = yield call(getConversationsApi);
+    // axios response -> res.data ; other implementations may return plain array
+    const payload = res?.data ?? res;
+    yield put(listUserActions.getUserConversationsSuccess(payload));
+  } catch (err) {
+    yield put(
+      listUserActions.getUserConversationsFailure(
+        err?.message || String(err) || "Fetch conversations failed"
       )
     );
   }
@@ -46,4 +66,8 @@ export default function* userSagas() {
   yield takeLatest(listUserActions.getAllUserRequest.type, getListAllUser);
   yield takeLatest(listUserActions.getUserProfileRequest.type, getUserProfile);
   yield takeLatest(listUserActions.approveUser.type, getApproveUser);
+  yield takeLatest(
+    listUserActions.getUserConversationsRequest.type,
+    getConversationsSaga
+  );
 }

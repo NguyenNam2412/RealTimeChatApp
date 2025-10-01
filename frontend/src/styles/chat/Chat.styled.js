@@ -111,10 +111,11 @@ export const ChatItem = styled.div`
 
 /* Chat area */
 export const ChatContainer = styled.div`
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  flex: 1;
+  height: 100vh;
+  box-sizing: border-box;
 `;
 
 /* Header / title of chat window */
@@ -126,50 +127,68 @@ export const ChatHeader = styled.div`
 
 /* Messages area: allow shrink on small screens */
 export const MessagesContainer = styled.div`
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  min-height: 0; /* important for flex children overflow on mobile */
+  flex: 1 1 auto;
+  padding: 16px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
 `;
 
 /* Message bubble */
 export const Message = styled.div`
-  margin: 5px 0;
-  padding: 10px;
-  border-radius: 8px;
-  max-width: 60%;
-  background: ${(props) => (props.me ? "#cce5ff" : "#fff")};
-  align-self: ${(props) => (props.me ? "flex-end" : "flex-start")};
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
-  /* ensure text wrapping inside bubble */
-  white-space: pre-wrap;
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: ${(p) => (p.$me ? "#d1e7ff" : "#f1f1f1")};
+  color: #111;
+  align-self: ${(p) => (p.$me ? "flex-end" : "flex-start")};
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
   word-break: break-word;
+  white-space: pre-wrap;
+  font-size: 14px;
+
+  strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #0b57a4;
+  }
 `;
 
 /* Input area */
 export const InputContainer = styled.div`
+  flex: 0 0 auto;
+  padding: 8px;
   display: flex;
-  padding: 10px;
-  border-top: 1px solid #ccc;
-  background: #fff;
+  gap: 8px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
 
   input {
-    flex: 1;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-right: 10px;
-    min-width: 0;
+    flex: 1 1 auto;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    outline: none;
   }
 
   button {
-    padding: 8px 15px;
-    background: #0078ff;
-    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
     border: none;
-    border-radius: 5px;
+    background: #0b66d1;
+    color: #fff;
     cursor: pointer;
+    font-weight: 600;
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 `;
 

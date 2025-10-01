@@ -24,6 +24,9 @@ let UsersController = class UsersController {
     getProfile(req) {
         return this.usersService.getProfile(req.user.sub);
     }
+    async getConversations(req) {
+        return this.usersService.getConversations(req.user.sub);
+    }
     updateProfile(req, dto) {
         return this.usersService.updateProfile(req.user.sub, dto);
     }
@@ -42,6 +45,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Get)('conversations'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getConversations", null);
 __decorate([
     (0, common_1.Patch)('me'),
     __param(0, (0, common_1.Req)()),

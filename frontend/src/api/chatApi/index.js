@@ -8,10 +8,10 @@ export const sendMessApi = (messObj) => {
   return chatApi.post("", messObj);
 };
 
-export const getUserMessApi = (userId) => {
-  return chatApi.get(`/private/${userId}`);
+export const getUserMessApi = (userId, params = {}) => {
+  return chatApi.get(`/private/${userId}`, { params });
 };
 
-export const getGroupMessApi = (groupId) => {
-  return chatApi.get(`/group/${groupId}`);
+export const getGroupMessApi = (groupId, params) => {
+  return chatApi.get(`/group/${groupId}`, { params });
 };

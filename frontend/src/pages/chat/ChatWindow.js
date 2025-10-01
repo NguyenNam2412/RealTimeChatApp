@@ -27,21 +27,23 @@ function ChatWindow(props) {
   const messages = useSelector(messageSelectors.selectAllMessages);
   const loading = useSelector(messageSelectors.selectLoading);
   const error = useSelector(messageSelectors.selectError);
-  // stable selector: read messages map directly to avoid creating selector factory every render
+
+  // messages for current target from store (stable)
   const storeTargetMessages = useSelector((state) => {
     if (!selectedTarget) return [];
     return selectedTarget.type === "group"
       ? state.chat?.groupMessages?.[selectedTarget.id] ?? []
       : state.chat?.userMessages?.[selectedTarget.id] ?? [];
   }, shallowEqual);
-  const prevMsgsRef = useRef(new Set());
 
+  const listRef = useRef(null);
+  const prevLenRef = useRef(0);
   const [input, setInput] = useState("");
   const [historyMessages, setHistoryMessages] = useState(null); // null = not loaded yet
   const [loadingHistory, setLoadingHistory] = useState(false);
   const currentUserId = decodeTokenUserId();
 
-  // fetch history when target changes
+  // fetch history when target changes (load most recent 20)
   useEffect(() => {
     if (!selectedTarget) {
       setHistoryMessages(null);
@@ -49,15 +51,26 @@ function ChatWindow(props) {
     }
     setLoadingHistory(true);
     if (selectedTarget.type === "group") {
-      dispatch(chatActions.fetchGroupMessagesRequest(selectedTarget.id));
+      dispatch(
+        chatActions.fetchGroupMessagesRequest({
+          id: selectedTarget.id,
+          limit: 20,
+          offset: 0,
+        })
+      );
     } else {
-      dispatch(chatActions.fetchUserMessagesRequest(selectedTarget.id));
+      dispatch(
+        chatActions.fetchUserMessagesRequest({
+          id: selectedTarget.id,
+          limit: 20,
+          offset: 0,
+        })
+      );
     }
     setHistoryMessages(null);
-    prevMsgsRef.current = new Set();
   }, [selectedTarget, dispatch]);
 
-  // only set historyMessages when the list of message ids actually changes
+  // update local history from store (only when ids changed)
   useEffect(() => {
     if (!selectedTarget) return;
     const newMessages = Array.isArray(storeTargetMessages)
@@ -77,14 +90,59 @@ function ChatWindow(props) {
       setHistoryMessages(newMessages);
     }
     setLoadingHistory(false);
-    prevMsgsRef.current = new Set(newMessages.map((m) => m.id));
+    prevLenRef.current = (newMessages || []).length;
   }, [storeTargetMessages, selectedTarget]);
 
-  // filter messages relevant to selectedTarget
+  // scroll to bottom when messages change (new message appended)
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    // if historyMessages exist -> use it; else use visibleMessages (store)
+    const length =
+      historyMessages !== null
+        ? (historyMessages || []).length
+        : (messages || []).length;
+    // if increased or initial load, scroll to bottom
+    if (length > (prevLenRef.current || 0) || prevLenRef.current === 0) {
+      // defer to next tick to allow DOM render
+      requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight;
+      });
+    }
+    prevLenRef.current = length;
+  }, [historyMessages, messages]);
+
+  // load more when user scrolls to top
+  const handleScroll = (e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop === 0 && !loadingHistory && selectedTarget) {
+      // load older messages: offset = currently loaded length
+      const currentCount = Array.isArray(historyMessages)
+        ? historyMessages.length
+        : 0;
+      if (selectedTarget.type === "group") {
+        dispatch(
+          chatActions.fetchGroupMessagesRequest({
+            id: selectedTarget.id,
+            limit: 20,
+            offset: currentCount,
+          })
+        );
+      } else {
+        dispatch(
+          chatActions.fetchUserMessagesRequest({
+            id: selectedTarget.id,
+            limit: 20,
+            offset: currentCount,
+          })
+        );
+      }
+    }
+  };
+
   const visibleMessages =
     selectedTarget && historyMessages !== null
-      ? // if history loaded use it
-        historyMessages || []
+      ? historyMessages || []
       : selectedTarget && messages.length
       ? messages.filter((m) => {
           if (selectedTarget.type === "group") {
@@ -114,20 +172,6 @@ function ChatWindow(props) {
     };
     dispatch(chatActions.sendMessageRequest(payload));
     setInput("");
-    if (historyMessages !== null) {
-      const tmp = {
-        id: `tmp-${Date.now()}`,
-        content: payload.content,
-        sender: { id: currentUserId },
-        me: true,
-        createdAt: new Date().toISOString(),
-        groupId: payload.groupId,
-        receiverId: payload.receiverId,
-      };
-      setHistoryMessages((prev) =>
-        Array.isArray(prev) ? [...prev, tmp] : [tmp]
-      );
-    }
   };
 
   return (
@@ -151,7 +195,7 @@ function ChatWindow(props) {
         )}
       </div>
 
-      <MessagesContainer>
+      <MessagesContainer ref={listRef} onScroll={handleScroll}>
         {loading && <p>Đang gửi...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
 
@@ -169,15 +213,55 @@ function ChatWindow(props) {
           <div style={{ padding: 16, color: "#666" }}>Đang tải lịch sử...</div>
         )}
 
-        {visibleMessages.map((m) => (
-          <Message key={m.id} me={m.me}>
-            <strong>
-              {m.sender?.username ?? m.sender ?? ""}{" "}
-              {m.nickname ? `(${m.nickname})` : ""}:
-            </strong>{" "}
-            {m.content ?? m.text}
-          </Message>
-        ))}
+        {/*
+          ensure we don't render objects as React children.
+          compute senderName safely and sort messages oldest->newest before render
+        */}
+        {(() => {
+          const sorted = Array.isArray(visibleMessages)
+            ? [...visibleMessages].sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime()
+              )
+            : [];
+
+          return sorted.map((m) => {
+            const senderObj = m.senderObj ?? m.sender ?? {};
+            // sender may be string id or object
+            const senderName =
+              typeof senderObj === "string"
+                ? senderObj
+                : senderObj?.username ??
+                  senderObj?.nickname ??
+                  senderObj?.id ??
+                  "";
+            const nickname = m.nickname ?? senderObj?.nickname ?? "";
+            const senderId =
+              (typeof senderObj === "string" ? senderObj : senderObj?.id) ??
+              m.senderId ??
+              m.sender?.id;
+            const isMe = !!(
+              senderId &&
+              currentUserId &&
+              senderId === currentUserId
+            );
+            const text =
+              typeof m.content === "string"
+                ? m.content
+                : String(m.content ?? m.text ?? "");
+
+            return (
+              <Message key={m.id} $me={isMe}>
+                <strong>
+                  {senderName}
+                  {nickname ? ` (${nickname})` : ""}:
+                </strong>{" "}
+                {text}
+              </Message>
+            );
+          });
+        })()}
       </MessagesContainer>
 
       <InputContainer>
@@ -190,7 +274,13 @@ function ChatWindow(props) {
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          onKeyDown={(e) => {
+            // Enter = send, Shift+Enter = newline
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           disabled={!selectedTarget}
         />
         <button onClick={handleSend} disabled={!selectedTarget}>
