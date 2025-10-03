@@ -58,44 +58,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const payload = this.jwtService.verify(token as string, {
-        secret: process.env.JWT_SECRET,
-      });
-      const userId = payload?.sub;
-      if (!userId) {
-        this.logger.warn('Invalid token payload, disconnecting');
+      try {
+        const payload = await this.jwtService.verifyAsync(token as string, {
+          secret: process.env.JWT_SECRET,
+        });
+        const userId = payload?.sub;
+        if (!userId) {
+          this.logger.warn('Invalid token payload, disconnecting');
+          client.disconnect(true);
+          return;
+        }
+
+        const userEntity = await this.userRepo.findOne({ where: { id: userId } });
+        if (!userEntity || userEntity.isApproved !== true) {
+          this.logger.warn(`User ${userId} not allowed to connect`);
+          client.disconnect(true);
+          return;
+        }
+
+        client.data.user = { id: userId, username: payload.username, role: payload.role };
+
+        // track socket id
+        const set = this.userSockets.get(userId) ?? new Set<string>();
+        set.add(client.id);
+        this.userSockets.set(userId, set);
+
+        // join private room
+        client.join(`user:${userId}`);
+
+        // join group rooms where user is member
+        const memberships = await this.groupMemberRepo.find({ where: { userId }, select: ['groupId'] });
+        for (const m of memberships) {
+          client.join(`group:${m.groupId}`);
+        }
+
+        this.logger.log(`User ${userId} connected (socket ${client.id})`);
+        client.emit('connected', { userId });
+      } catch (err) {
+        this.logger.warn('Socket auth failed, disconnecting', err as any);
         client.disconnect(true);
-        return;
       }
-
-      const userEntity = await this.userRepo.findOne({ where: { id: userId } });
-      if (!userEntity || userEntity.isApproved !== true) {
-        this.logger.warn(`User ${userId} not allowed to connect`);
-        client.disconnect(true);
-        return;
-      }
-
-      client.data.user = { id: userId, username: payload.username, role: payload.role };
-
-      // track socket id
-      const set = this.userSockets.get(userId) ?? new Set<string>();
-      set.add(client.id);
-      this.userSockets.set(userId, set);
-
-      // join private room
-      client.join(`user:${userId}`);
-
-      // join group rooms where user is member
-      const memberships = await this.groupMemberRepo.find({ where: { userId }, select: ['groupId'] });
-      for (const m of memberships) {
-        client.join(`group:${m.groupId}`);
-      }
-
-      this.logger.log(`User ${userId} connected (socket ${client.id})`);
-      client.emit('connected', { userId });
     } catch (err) {
-      this.logger.warn('Socket auth failed, disconnecting', err as any);
+      this.logger.warn('Invalid token, disconnecting', err);
       client.disconnect(true);
+      return;
     }
   }
 

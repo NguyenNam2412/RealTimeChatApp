@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import messageSelectors from "@store/selectors/chatSelectors";
 import { chatActions } from "@store/slices/chatSlices";
+import chatSocket from "@utils/chat/chatSocket";
 
 import {
   ChatContainer,
@@ -42,6 +43,21 @@ function ChatWindow(props) {
   const [historyMessages, setHistoryMessages] = useState(null); // null = not loaded yet
   const [loadingHistory, setLoadingHistory] = useState(false);
   const currentUserId = decodeTokenUserId();
+
+  useEffect(() => {
+    chatSocket.on("new_private_message", (message) => {
+      console.log("new_private_message:", message);
+    });
+
+    chatSocket.on("new_group_message", (message) => {
+      console.log("new_group_message:", message);
+    });
+
+    return () => {
+      chatSocket.off("new_private_message");
+      chatSocket.off("new_group_message");
+    };
+  }, []);
 
   // fetch history when target changes (load most recent 20)
   useEffect(() => {
@@ -170,6 +186,18 @@ function ChatWindow(props) {
       groupId: selectedTarget.type === "group" ? selectedTarget.id : null,
       receiverId: selectedTarget.type === "private" ? selectedTarget.id : null,
     };
+
+    if (selectedTarget.type === "group") {
+      chatSocket.emit("group_message", {
+        groupId: payload.groupId,
+        content: payload.content,
+      });
+    } else {
+      chatSocket.emit("private_message", {
+        to: payload.receiverId,
+        content: payload.content,
+      });
+    }
     dispatch(chatActions.sendMessageRequest(payload));
     setInput("");
   };

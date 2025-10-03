@@ -1,6 +1,6 @@
 import axios from "axios";
 import { authActions } from "@store/slices/authSlice";
-import { store } from "@store";
+import { store } from "@store/index";
 
 // create axios instance have token
 export const createAxiosWithToken = (baseURL, defaultHeaders = {}) => {
@@ -31,9 +31,7 @@ export const createAxiosWithToken = (baseURL, defaultHeaders = {}) => {
         error.response?.data?.error === "Token expired"
       ) {
         alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("empInfo");
-        localStorage.removeItem("username");
+        localStorage.clear();
         store.dispatch(authActions.logout());
         window.location.href = "/login";
       }

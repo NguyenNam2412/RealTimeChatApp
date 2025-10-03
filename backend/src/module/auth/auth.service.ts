@@ -44,12 +44,17 @@ export class AuthService {
       role: 'user',
     };
 
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '4h',
+    });
+
     return { 
       status: 'pending',
       userId: user.id,
       username: user.username,
       nickname: user.nickname,
-      access_token: this.jwtService.sign(payload),      
+      access_token: accessToken,      
      };
   }
 
@@ -72,12 +77,18 @@ export class AuthService {
       approveStatus = 'approved';
     }
     const payload = { sub: user.id, username: user.username, nickname: user.nickname, role: 'user' };
+    
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '4h',
+    });
+    
     return {
       status: approveStatus,
       userId: user.id,
       username: user.username,
       nickname: user.nickname,
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
     };
   }
 
@@ -90,8 +101,14 @@ export class AuthService {
     // if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const payload = {sub: admin.id, username: admin.username, role: 'admin' };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '4h',
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
       username: admin.username,
     };
   }
