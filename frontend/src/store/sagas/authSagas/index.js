@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import { loginRequest as loginApi, register } from "@api/authApi";
+import { loginApi, registerApi } from "@api/authApi";
 import { authActions } from "@store/slices/authSlice";
 
 function* handleLogin(action) {
@@ -23,7 +23,7 @@ function* handleRegister(action) {
       nickname: action.payload.nickname,
       password: action.payload.password,
     };
-    const response = yield call(register, credentials);
+    const response = yield call(registerApi, credentials);
     yield put(authActions.registerSuccess(response.data));
   } catch (error) {
     yield put(authActions.registerFailure(error.message || "register failed"));

@@ -4,10 +4,10 @@ const authApi = createAxiosWithToken("http://localhost:5000/auth", {
   "Content-Type": "application/json",
 });
 
-export const loginRequest = (side, credentials) => {
+export const loginApi = (side, credentials) => {
   return authApi.post(`${side}`, credentials);
 };
 
-export const register = (credentials) => {
+export const registerApi = (credentials) => {
   return authApi.post("register", credentials);
 };
