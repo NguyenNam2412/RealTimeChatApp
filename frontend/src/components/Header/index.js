@@ -9,7 +9,7 @@ function Header(props) {
 
   const handleLogout = () => {
     localStorage.clear();
-    dispatch(authActions.logout());
+    dispatch(authActions.logout.type);
     navigate("/login");
   };
 

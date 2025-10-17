@@ -12,7 +12,7 @@ function App() {
 
   useEffect(() => {
     if (!!userProfile) {
-      dispatch(listUserActions.getUserProfileRequest());
+      dispatch(listUserActions.getUserProfileRequest.type);
     }
   }, [dispatch, userProfile]);
 

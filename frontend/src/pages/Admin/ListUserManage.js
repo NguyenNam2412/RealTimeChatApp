@@ -18,15 +18,15 @@ function ListUserManage() {
   );
 
   useEffect(() => {
-    dispatch(listUserActions.getAllUserRequest());
+    dispatch(listUserActions.getAllUserRequest.type);
   }, [dispatch]);
 
   const handleApprove = (row) => {
-    dispatch({ type: "USER_APPROVE", payload: row });
+    dispatch(listUserActions.approveUser({ userId: row.id, approve: true }));
   };
 
   const handleReject = (row) => {
-    dispatch({ type: "USER_REJECT", payload: row });
+    dispatch(listUserActions.approveUser({ userId: row.id, approve: false }));
   };
 
   const columns = [

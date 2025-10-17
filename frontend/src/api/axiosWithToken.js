@@ -32,7 +32,7 @@ export const createAxiosWithToken = (baseURL, defaultHeaders = {}) => {
       ) {
         alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         localStorage.clear();
-        store.dispatch(authActions.logout());
+        store.dispatch(authActions.logout.type);
         window.location.href = "/login";
       }
       return Promise.reject(error);
